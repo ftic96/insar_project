@@ -18,28 +18,25 @@ name_date = precipitation.Properties.DimensionNames{1};
 i_SPI = num_days:(num_days-overlap):height(precipitation);
 dates = precipitation.(name_date)(i_SPI); 
 
-% for ii = 1:width(precipitation)
-current_var = (precipitation);%.(ii);
-if ~isempty(current_var)
+for ii = 1:width(precipitation)
+    current_var = precipitation.(ii);
     for n = 1:length_spi
-        daterange = timerange(dates(n), dates(n) + num_days);
-        rolling_window(n,:) = sum(current_var{daterange,:},1);
+        idx = i_SPI(n) - num_days + 1: i_SPI(n);
+        rolling_window = sum(current_var(idx));
     end
 
-    zero_days = sum(rolling_window == 0);
+    zero_days = nnz(rolling_window == 0);
     chance_of_zero = zero_days / length(rolling_window);
-    
-    for ii = 1:width(precipitation)
-        rw_dist = rolling_window(:,ii);
-        rw_dist(rolling_window(:,ii) == 0) = [];
 
-        [alpha,beta,xi,Gamma] = pearson3_fit(rw_dist);
-        cumulative_dist = pearson3_cdf(rolling_window(:,ii), alpha, beta, xi, Gamma);
-        cumulative_dist(isnan(cumulative_dist)) = 0;
-        cumulative_dist = cumulative_dist + chance_of_zero(ii) .* (1 - cumulative_dist);
+    rw_dist = rolling_window;
+    rw_dist(rolling_window == 0) = [];
 
-        spi_mat(:,ii) = norminv(cumulative_dist,0,1);
-    end
+    [alpha,beta,xi,Gamma] = pearson3_fit(rw_dist);
+    cumulative_dist = pearson3_cdf(rolling_window, alpha, beta, xi, Gamma);
+    cumulative_dist(isnan(cumulative_dist)) = 0;
+    cumulative_dist = cumulative_dist + chance_of_zero .* (1 - cumulative_dist);
+
+    spi_mat(:,ii) = norminv(cumulative_dist,0,1);
 end
 
 spi = array2timetable(spi_mat,...
