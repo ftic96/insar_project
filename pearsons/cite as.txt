@@ -1,0 +1,1 @@
+Guillaume Talbot (2024). Pearson 3 distribution library (https://www.mathworks.com/matlabcentral/fileexchange/87629-pearson-3-distribution-library), MATLAB Central File Exchange. Retrieved November 7, 2024.
